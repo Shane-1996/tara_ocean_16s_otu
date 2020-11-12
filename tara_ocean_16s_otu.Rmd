@@ -1,0 +1,114 @@
+---
+title: "Data Analysis: Tara Ocean 16s OTU"
+author: "Shane"
+date: '`r format(Sys.time(), "%Y-%m-%d")`'
+output: github_document
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+library(tidyverse)
+library(ggridges)
+library(patchwork)
+library(plotly)
+
+knitr::opts_chunk$set(
+	echo = TRUE,
+	warning = FALSE,
+	fig.width = 8, 
+  fig.height = 6,
+  out.width = "90%"
+)
+
+theme_set(theme_minimal() + theme(legend.position = "bottom"))
+
+options(
+  ggplot2.continuous.colour = "viridis",
+  ggplot2.continuous.fill = "viridis"
+)
+
+scale_colour_discrete = scale_colour_viridis_d
+scale_fill_discrete = scale_fill_viridis_d
+```
+
+
+
+## Data import
+
+```{r}
+otu = read_tsv("data/miTAG.taxonomic.profiles.release.tsv") %>% 
+  janitor::clean_names()
+```
+
+
+
+## Tidy
+
+```{r}
+otu_tidy = otu %>% 
+  pivot_longer(
+    starts_with("tara_"),
+    names_to = "site",
+    values_to = "count",
+    values_drop_na = TRUE,
+  )
+
+otu_site = otu_tidy %>% 
+  select("site", "phylum", "count") %>% 
+  arrange(site, desc(count))
+```
+
+
+
+## Basic plotly
+
+```{}
+type_count_plotly = function(x) {
+  
+  count_plotly = otu_tidy %>% 
+  filter(otu.rep == x) %>% 
+  mutate(type =fct_reorder(site, count)) %>% 
+  plot_ly(x = ~site, y = ~count, color = ~site, type = "bar", colors = "viridis")
+  
+  count_plotly
+  
+}
+
+type_count_plotly("AACY024102418.157.1623")
+
+output = map(.x = otu_nest, ~ type_count_plotly(.x))
+```
+
+
+
+
+## Cumulative histogram
+```{r}
+ggplot(data=otu_site, aes(x=phylum, group=site, fill=site)) +
+  geom_density(adjust=1.5, position="fill") +
+  theme(axis.text.x = element_text(angle = 270, hjust = 1), legend.position = "none")
+```
+
+```{r}
+otu_sum = 
+  otu_site %>%
+  group_by(site, phylum) %>%
+  summarise_each(funs(sum)) %>% 
+  filter(count > 1000)
+
+ggplot(data = otu_sum, aes(x=site, group=phylum, fill=phylum)) +
+  geom_density(adjust=1.5, position="fill") +
+  theme(axis.text.x = element_text(angle = 270, hjust = 1))
+```
+
+```{r}
+prct = function(x) {
+  
+  round(x / sum(x) * 100, 5)
+  
+}
+
+
+```
+
