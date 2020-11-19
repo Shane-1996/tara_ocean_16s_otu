@@ -34,7 +34,7 @@ scale_fill_discrete = scale_fill_viridis_d
 
 
 
-## Data import
+# Data import
 
 ```{r}
 otu = read_tsv("data/miTAG.taxonomic.profiles.release.tsv") %>% 
@@ -43,7 +43,7 @@ otu = read_tsv("data/miTAG.taxonomic.profiles.release.tsv") %>%
 
 
 
-## Tidy
+# Tidy
 
 ```{r}
 otu_tidy = otu %>% 
@@ -53,62 +53,86 @@ otu_tidy = otu %>%
     values_to = "count",
     values_drop_na = TRUE,
   )
+```
 
+``` {r}
 otu_site = otu_tidy %>% 
   select("site", "phylum", "count") %>% 
-  arrange(site, desc(count))
+  arrange(site, phylum)
 ```
 
 
 
-## Basic plotly
-
-```{}
-type_count_plotly = function(x) {
-  
-  count_plotly = otu_tidy %>% 
-  filter(otu.rep == x) %>% 
-  mutate(type =fct_reorder(site, count)) %>% 
-  plot_ly(x = ~site, y = ~count, color = ~site, type = "bar", colors = "viridis")
-  
-  count_plotly
-  
-}
-
-type_count_plotly("AACY024102418.157.1623")
-
-output = map(.x = otu_nest, ~ type_count_plotly(.x))
-```
-
-
-
-
-## Cumulative histogram
-```{r}
-ggplot(data=otu_site, aes(x=phylum, group=site, fill=site)) +
-  geom_density(adjust=1.5, position="fill") +
-  theme(axis.text.x = element_text(angle = 270, hjust = 1), legend.position = "none")
-```
+# Cumulative histogram
 
 ```{r}
 otu_sum = 
   otu_site %>%
   group_by(site, phylum) %>%
-  summarise_each(funs(sum)) %>% 
-  filter(count > 1000)
-
-ggplot(data = otu_sum, aes(x=site, group=phylum, fill=phylum)) +
-  geom_density(adjust=1.5, position="fill") +
-  theme(axis.text.x = element_text(angle = 270, hjust = 1))
+  summarise(sum = sum(count)) 
 ```
 
 ```{r}
-prct = function(x) {
+order = otu_sum %>% select("site") %>% unique() %>% tibble::rowid_to_column("order") %>% as_tibble()
+
+ots_order = left_join(order, otu_sum, by = "site")
+```
+
+```{r}
+otu_sum %>% 
+  filter(site == "tara_004_srf_0_22_1_6") %>% 
+  mutate(
+    pct = round(sum / sum(sum), 5)
+  )
+```
+
+```{r}
+pct = function(x) {
   
-  round(x / sum(x) * 100, 5)
+  pct = otu_sum %>% 
+  filter(site == x) %>% 
+  mutate(
+    pct = round(sum / sum(sum), 5)
+  )
   
+  tibble((pct))
+}
+```
+
+```{r}
+output = vector("list", length = 7784)
+
+for (i in 1:7784) {
+  output[[i]] = pct(otu_sum$site[[i]])
 }
 
 
+output_df = bind_rows(output) %>% unique() %>% select(-sum)
 ```
+
+```{r}
+output_other = 
+  bind_rows(
+    output_df  %>%  
+    group_by(site) %>% 
+    filter(pct < 0.01) %>% 
+    summarise(pct = sum(pct)) %>%
+    mutate(phylum = "other")
+  )
+
+output_1 = 
+  output_df %>% 
+  filter(pct >= 0.01) %>% 
+  bind_rows(output_other) %>% 
+  arrange(site, phylum)
+  
+```
+
+```{r}
+plot = ggplot(output_1, aes(x=site, y=pct, fill=phylum)) + 
+  geom_col(position = 'stack', width = 0.6) +
+  theme(axis.text.x = element_text(angle = 270, hjust = 1), legend.position = "right") +
+  scale_fill_manual(values=c("#333300", "#339900", "#00FF00", "#000033", "#660099", "#990099", "#660000", "#FF3366", "#FF9900", "#996600", "#3399FF", "#006699", "#0000CC"))
+```
+
 
