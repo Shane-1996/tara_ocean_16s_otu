@@ -1,4 +1,4 @@
-Data Analysis: Tara Ocean 16s OTU
+Basic Plot: Tara Ocean 16s OTU
 ================
 Shane
 2020-11-19

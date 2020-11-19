@@ -1,5 +1,5 @@
 ---
-title: "Data Analysis: Tara Ocean 16s OTU"
+title: "Basic Plot: Tara Ocean 16s OTU"
 author: "Shane"
 date: '`r format(Sys.time(), "%Y-%m-%d")`'
 output: github_document
