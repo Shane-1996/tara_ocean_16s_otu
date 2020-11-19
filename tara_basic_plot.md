@@ -6,8 +6,7 @@ Shane
 # Data import
 
 ``` r
-otu = read_tsv("data/miTAG.taxonomic.profiles.release.tsv") %>% 
-  janitor::clean_names()
+otu = read_tsv("data/miTAG.taxonomic.profiles.release.tsv")
 ```
 
     ## Parsed with column specification:
@@ -29,11 +28,12 @@ otu = read_tsv("data/miTAG.taxonomic.profiles.release.tsv") %>%
 ``` r
 otu_tidy = otu %>% 
   pivot_longer(
-    starts_with("tara_"),
+    starts_with("TARA_"),
     names_to = "site",
     values_to = "count",
     values_drop_na = TRUE,
-  )
+  ) %>% 
+  janitor::clean_names()
 ```
 
 ``` r
@@ -67,21 +67,9 @@ otu_sum %>%
   )
 ```
 
-    ## # A tibble: 56 x 4
-    ## # Groups:   site [1]
-    ##    site                  phylum                    sum     pct
-    ##    <chr>                 <chr>                   <dbl>   <dbl>
-    ##  1 tara_004_srf_0_22_1_6 Acidobacteria               3 0.00003
-    ##  2 tara_004_srf_0_22_1_6 Actinobacteria           2104 0.0231 
-    ##  3 tara_004_srf_0_22_1_6 aquifer1                    0 0      
-    ##  4 tara_004_srf_0_22_1_6 Aquificae                   0 0      
-    ##  5 tara_004_srf_0_22_1_6 Armatimonadetes             1 0.00001
-    ##  6 tara_004_srf_0_22_1_6 Bacteroidetes            5846 0.0642 
-    ##  7 tara_004_srf_0_22_1_6 BD1-5                       0 0      
-    ##  8 tara_004_srf_0_22_1_6 BHI80-139                   0 0      
-    ##  9 tara_004_srf_0_22_1_6 Caldiserica                 0 0      
-    ## 10 tara_004_srf_0_22_1_6 Candidate division BRC1     0 0      
-    ## # … with 46 more rows
+    ## # A tibble: 0 x 4
+    ## # Groups:   site [0]
+    ## # … with 4 variables: site <chr>, phylum <chr>, sum <dbl>, pct <dbl>
 
 ``` r
 pct = function(x) {

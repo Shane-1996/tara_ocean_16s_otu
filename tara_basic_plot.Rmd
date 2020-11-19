@@ -37,8 +37,7 @@ scale_fill_discrete = scale_fill_viridis_d
 # Data import
 
 ```{r}
-otu = read_tsv("data/miTAG.taxonomic.profiles.release.tsv") %>% 
-  janitor::clean_names()
+otu = read_tsv("data/miTAG.taxonomic.profiles.release.tsv")
 ```
 
 
@@ -48,11 +47,12 @@ otu = read_tsv("data/miTAG.taxonomic.profiles.release.tsv") %>%
 ```{r}
 otu_tidy = otu %>% 
   pivot_longer(
-    starts_with("tara_"),
+    starts_with("TARA_"),
     names_to = "site",
     values_to = "count",
     values_drop_na = TRUE,
-  )
+  ) %>% 
+  janitor::clean_names()
 ```
 
 ``` {r}
