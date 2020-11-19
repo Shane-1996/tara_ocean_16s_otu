@@ -134,3 +134,7 @@ plot = ggplot(output_1, aes(x=site, y=pct, fill=phylum)) +
   theme(axis.text.x = element_text(angle = 270, hjust = 1), legend.position = "right") +
   scale_fill_manual(values=c("#333300", "#339900", "#00FF00", "#000033", "#660099", "#990099", "#660000", "#FF3366", "#FF9900", "#996600", "#3399FF", "#006699", "#0000CC"))
 ```
+
+``` r
+write_csv(output_1, "data/site_phylum_pct.csv")
+```
