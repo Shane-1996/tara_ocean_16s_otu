@@ -9,6 +9,7 @@ editor_options:
 
 ```{r setup, include=FALSE}
 library(tidyverse)
+library(readxl)
 library(ggridges)
 library(patchwork)
 library(plotly)
@@ -37,28 +38,24 @@ scale_fill_discrete = scale_fill_viridis_d
 # Data import
 
 ```{r}
-otu = read_tsv("data/miTAG.taxonomic.profiles.release.tsv") %>% 
-  janitor::clean_names()
+data = read_csv("data/site_phylum_pct.csv")
+
+location = 
+  read_excel(
+    "data/OM.CompanionTables.xlsx", 
+    sheet = 2, 
+    col_names=TRUE
+  ) %>% 
+  janitor::clean_names() %>% 
+  mutate(
+    site = sample_label_tara_station_number_environmental_feature_size_fraction,
+    location = ocean_and_sea_regions_iho_general_sea_areas_1953_mrgid_registered_at_www_marineregions_com
+  ) %>% 
+  select(site, location)
+  
+  
 ```
 
 
-
-# Tidy
-
-```{r}
-otu_tidy = otu %>% 
-  pivot_longer(
-    starts_with("tara_"),
-    names_to = "site",
-    values_to = "count",
-    values_drop_na = TRUE,
-  )
-```
-
-``` {r}
-otu_site = otu_tidy %>% 
-  select("site", "phylum", "count") %>% 
-  arrange(site, phylum)
-```
 
 
